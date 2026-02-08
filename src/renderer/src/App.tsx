@@ -16,17 +16,17 @@ function App(): React.JSX.Element {
         <h1 className="app-title">Heaven</h1>
       </nav>
 
-      <img src={nuvemGorda} alt="Heaven nuvem gorda" className="nuvemGorda" />
       <img src={nuvemEsticada} alt="Heaven nuvem esticada" className="nuvemEsticada" />
-      {/* <img src={nuvemMiuda} alt="Heaven nuvem miuda" className="nuvemMiuda" /> */}
-
+      <div className="tableSections">
       <section className="outlandSection">
+        <h2 style={{textAlign: "center"}}>OUTLAND</h2>
         <MacroButton name="REVIVE" macroId="revive" />
-        <ScreenCaptureButton />
         <FindImageButton />
-        <MacroButton name="BUFF" macroId="buff" />
-        <MousePositionButton />
+        {/* <MacroButton name="BUFF" macroId="buff" /> */}
+        {/* <MousePositionButton /> */}
       </section>
+      </div>
+      <ScreenCaptureButton />
 
       <img src={ceraImg} alt="Heaven cera" className="cera" />
 

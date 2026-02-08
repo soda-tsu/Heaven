@@ -63,7 +63,7 @@ function FindImageButton(): React.JSX.Element {
 
   const handleClick = (): void => {
     setIsListening(true)
-    setStatus('Pressione uma tecla...')
+    setStatus('...')
   }
 
   const handleRightClick = async (e: React.MouseEvent): Promise<void> => {
@@ -76,29 +76,19 @@ function FindImageButton(): React.JSX.Element {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+    <div className="macro-button-container">
       <button
+      className="macro-button"
         onClick={handleClick}
         onContextMenu={handleRightClick}
         disabled={isListening}
-        style={{
-          padding: '15px 40px',
-          fontSize: '18px',
-          fontWeight: 'bold',
-          backgroundColor: isListening ? '#FFC107' : '#2196F3',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: isListening ? 'default' : 'pointer',
-          minWidth: '150px'
-        }}
       >
-        {isListening ? '...' : 'Capturar'}
+        {isListening ? 'pressione a tecla' : 'Capturar'}
       </button>
 
-      <span style={{ fontSize: '12px', color: '#888', height: '18px' }}>
-        {status || (hotkey ? hotkey : 'Sem tecla')}
-      </span>
+  <div className="macro-button-status">
+        {status || (hotkey ? hotkey : '-')}
+      </div>
     </div>
   )
 }

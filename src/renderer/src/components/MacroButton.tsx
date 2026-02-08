@@ -72,7 +72,7 @@ function MacroButton({ name, macroId, color = '#D99197' }: MacroButtonProps): Re
 
   const handleClick = (): void => {
     setIsListening(true)
-    setStatus('Pressione uma tecla...')
+    setStatus('...')
   }
 
   const handleRightClick = async (e: React.MouseEvent): Promise<void> => {
@@ -97,7 +97,7 @@ function MacroButton({ name, macroId, color = '#D99197' }: MacroButtonProps): Re
       </button>
 
       <div className="macro-button-status">
-        {status || (hotkey ? hotkey : 'D')}
+        {status || (hotkey ? hotkey : '-')}
       </div>
     </div>
   )

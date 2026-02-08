@@ -1,21 +1,35 @@
-.screen-capture-container {
+.screen-capture-section{
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
+  position: absolute;
+  left: 50%;
+  transform: translate(
+-50%
+  );
+  top: 104px;
+}
+.screen-capture-container {
+  
+  width: 300px;
+  height: 50px;
+  position: relative;
 }
 
 .screen-capture-button {
+  width: 300px;
   padding: 15px 40px;
   font-size: 18px;
   font-weight: bold;
-  background-color: #FF5722;
+   background-color: #5BA698;
   color: white;
   border: none;
   border-radius: 8px;
   cursor: pointer;
   min-width: 150px;
   transition: filter 0.2s;
+  text-align: left;
 }
 
 .screen-capture-button:hover {
@@ -35,13 +49,12 @@
 
 .screen-capture-preview {
   margin-top: 10px;
-  border: 2px solid #FF5722;
   border-radius: 4px;
   overflow: hidden;
 }
 
 .screen-capture-image {
-  width: 30px;
-  height: 30px;
+  width: 300px;
+  height: 300px;
   display: block;
 }

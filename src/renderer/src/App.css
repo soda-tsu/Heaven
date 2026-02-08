@@ -9,10 +9,17 @@
   padding: 0 20px;
 }
 .app-title {
-  color: #b2f7e3;
-  font-size: 64px;
+  color: #FFF;
+  font-size: 54px;
   font-weight: bold;
   font-family: 'Work Sans', sans-serif;
+}
+.tableSections{
+  height: 100%;
+  align-items: flex-start;
+  display: flex;
+  gap: 40px;
+  padding: 24px;
 }
 
 /* .app-footer {
@@ -32,13 +39,22 @@
   font-size: 24px;
   color: white;
 } */
+
+
 .outlandSection{
-  background-color: #888;
   width: 300px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 16px;
+}
+.outlandSection h2{
+  background-color: #5BA698;
+  letter-spacing: 4px;
+  font-size: 24px;
+  color: #FFF;
+  font-weight: bold;
+  font-family: 'Work Sans', sans-serif;
 }
 .cera{
   position: absolute;
@@ -55,6 +71,7 @@
   transform: translate(-50%, -50%);
 }
 .nuvemEsticada{
+  width: 400px;
   position: absolute;
   left: 97%;
   transform: translateX(-100%);

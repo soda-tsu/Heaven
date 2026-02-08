@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import './ScreenCaptureButton.css'
+import noimage from '../assets/noimage.jpg'
 
 function ScreenCaptureButton(): React.JSX.Element {
   const [hotkey, setHotkey] = useState<string>('')
@@ -93,7 +94,7 @@ function ScreenCaptureButton(): React.JSX.Element {
 
   const handleClick = (): void => {
     setIsListening(true)
-    setStatus('Pressione uma tecla...')
+    setStatus('...')
   }
 
   const handleRightClick = async (e: React.MouseEvent): Promise<void> => {
@@ -107,6 +108,7 @@ function ScreenCaptureButton(): React.JSX.Element {
   }
 
   return (
+    <section className="screen-capture-section">
     <div className="screen-capture-container">
       <button
         className="screen-capture-button"
@@ -114,23 +116,25 @@ function ScreenCaptureButton(): React.JSX.Element {
         onContextMenu={handleRightClick}
         disabled={isListening}
       >
-        {isListening ? '...' : 'SELECIONAR CAPTURA'}
+        {isListening ? 'SELECIONE UMA TECLA' : 'SELECIONAR CAPTURA'}
       </button>
 
-      <span className="screen-capture-status">
-        {status || (hotkey ? hotkey : 'Sem tecla')}
-      </span>
+      <div className="macro-button-status">
+        {status || (hotkey ? hotkey : '-')}
+      </div>
 
-      {capturedImage && (
-        <div className="screen-capture-preview">
+    
+        
+      
+    </div>
+    <div className="screen-capture-preview">
           <img
-            src={capturedImage}
+            src={capturedImage ? capturedImage : noimage}
             alt="Captura"
             className="screen-capture-image"
           />
         </div>
-      )}
-    </div>
+    </section>
   )
 }
 
