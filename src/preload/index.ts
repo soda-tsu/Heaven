@@ -21,7 +21,27 @@ const api = {
   },
   removeMousePositionListener: (): void => {
     ipcRenderer.removeAllListeners('mousePosition:captured')
-  }
+  },
+  registerScreenCaptureHotkey: (
+    accelerator: string
+  ): Promise<{ success: boolean; key?: string; error?: string }> =>
+    ipcRenderer.invoke('screenCapture:register', accelerator),
+  unregisterScreenCaptureHotkey: (): Promise<{ success: boolean }> =>
+    ipcRenderer.invoke('screenCapture:unregister'),
+  onScreenCapture: (
+    callback: (imageData: { width: number; height: number; data: number[] }) => void
+  ): void => {
+    ipcRenderer.on('screenCapture:captured', (_event, imageData) => callback(imageData))
+  },
+  removeScreenCaptureListener: (): void => {
+    ipcRenderer.removeAllListeners('screenCapture:captured')
+  },
+  registerFindImageHotkey: (
+    accelerator: string
+  ): Promise<{ success: boolean; key?: string; error?: string }> =>
+    ipcRenderer.invoke('findImage:register', accelerator),
+  unregisterFindImageHotkey: (): Promise<{ success: boolean }> =>
+    ipcRenderer.invoke('findImage:unregister')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

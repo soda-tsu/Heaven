@@ -1,5 +1,7 @@
 import MacroButton from './components/MacroButton'
 import MousePositionButton from './components/MousePositionButton'
+import ScreenCaptureButton from './components/ScreenCaptureButton'
+import FindImageButton from './components/FindImageButton'
 
 function App(): React.JSX.Element {
   return (
@@ -16,7 +18,8 @@ function App(): React.JSX.Element {
         }}
       >
         <MacroButton name="REVIVE" macroId="revive" color="#4CAF50" />
-        <MacroButton name="HEAL" macroId="heal" color="#2196F3" />
+        <ScreenCaptureButton />
+        <FindImageButton />
         <MacroButton name="BUFF" macroId="buff" color="#9C27B0" />
         <MousePositionButton />
       </div>
