@@ -2,31 +2,37 @@ import MacroButton from './components/MacroButton'
 import MousePositionButton from './components/MousePositionButton'
 import ScreenCaptureButton from './components/ScreenCaptureButton'
 import FindImageButton from './components/FindImageButton'
+import ceraImg from './assets/cera.png'
+import nuvemGorda from './assets/nuvenGorda.png'
+import nuvemEsticada from './assets/nuvenEsticada.png'
+import nuvemMiuda from './assets/nuvenMiuda.png'
+
+import './App.css'
 
 function App(): React.JSX.Element {
   return (
-    <div style={{ padding: '40px', textAlign: 'center' }}>
-      <h1>Heaven Macro</h1>
+    <div className="app-container">
+      <nav className='nav'>
+        <h1 className="app-title">Heaven</h1>
+      </nav>
 
-      <div
-        style={{
-          marginTop: '40px',
-          display: 'flex',
-          justifyContent: 'center',
-          gap: '30px',
-          flexWrap: 'wrap'
-        }}
-      >
-        <MacroButton name="REVIVE" macroId="revive" color="#4CAF50" />
+      <img src={nuvemGorda} alt="Heaven nuvem gorda" className="nuvemGorda" />
+      <img src={nuvemEsticada} alt="Heaven nuvem esticada" className="nuvemEsticada" />
+      {/* <img src={nuvemMiuda} alt="Heaven nuvem miuda" className="nuvemMiuda" /> */}
+
+      <section className="outlandSection">
+        <MacroButton name="REVIVE" macroId="revive" />
         <ScreenCaptureButton />
         <FindImageButton />
-        <MacroButton name="BUFF" macroId="buff" color="#9C27B0" />
+        <MacroButton name="BUFF" macroId="buff" />
         <MousePositionButton />
-      </div>
+      </section>
 
-      <p style={{ marginTop: '30px', fontSize: '12px', color: '#888' }}>
-        Clique no botão e pressione a tecla desejada. Clique direito para remover.
-      </p>
+      <img src={ceraImg} alt="Heaven cera" className="cera" />
+
+      {/* <footer className="app-footer">
+        <p>Clique no botão e pressione a tecla desejada. Clique direito para remover.</p>
+      </footer> */}
     </div>
   )
 }

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import './MacroButton.css'
 
 interface MacroButtonProps {
   name: string
@@ -6,7 +7,7 @@ interface MacroButtonProps {
   color?: string
 }
 
-function MacroButton({ name, macroId, color = '#4CAF50' }: MacroButtonProps): React.JSX.Element {
+function MacroButton({ name, macroId, color = '#D99197' }: MacroButtonProps): React.JSX.Element {
   const [hotkey, setHotkey] = useState<string>('')
   const [isListening, setIsListening] = useState(false)
   const [status, setStatus] = useState<string>('')
@@ -84,29 +85,20 @@ function MacroButton({ name, macroId, color = '#4CAF50' }: MacroButtonProps): Re
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+    <div className="macro-button-container">
       <button
+        className="macro-button"
         onClick={handleClick}
         onContextMenu={handleRightClick}
         disabled={isListening}
-        style={{
-          padding: '15px 40px',
-          fontSize: '18px',
-          fontWeight: 'bold',
-          backgroundColor: isListening ? '#FFC107' : color,
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: isListening ? 'default' : 'pointer',
-          minWidth: '150px'
-        }}
+        style={{ '--button-color': color } as React.CSSProperties}
       >
-        {isListening ? '...' : name}
+        {isListening ? 'pressione a tecla' : name}
       </button>
 
-      <span style={{ fontSize: '12px', color: '#888', height: '18px' }}>
-        {status || (hotkey ? hotkey : 'Sem tecla')}
-      </span>
+      <div className="macro-button-status">
+        {status || (hotkey ? hotkey : 'D')}
+      </div>
     </div>
   )
 }

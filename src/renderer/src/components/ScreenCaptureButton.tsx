@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import './ScreenCaptureButton.css'
 
 function ScreenCaptureButton(): React.JSX.Element {
   const [hotkey, setHotkey] = useState<string>('')
@@ -106,43 +107,26 @@ function ScreenCaptureButton(): React.JSX.Element {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+    <div className="screen-capture-container">
       <button
+        className="screen-capture-button"
         onClick={handleClick}
         onContextMenu={handleRightClick}
         disabled={isListening}
-        style={{
-          padding: '15px 40px',
-          fontSize: '18px',
-          fontWeight: 'bold',
-          backgroundColor: isListening ? '#FFC107' : '#FF5722',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: isListening ? 'default' : 'pointer',
-          minWidth: '150px'
-        }}
       >
         {isListening ? '...' : 'SELECIONAR CAPTURA'}
       </button>
 
-      <span style={{ fontSize: '12px', color: '#888', height: '18px' }}>
+      <span className="screen-capture-status">
         {status || (hotkey ? hotkey : 'Sem tecla')}
       </span>
 
       {capturedImage && (
-        <div
-          style={{
-            marginTop: '10px',
-            border: '2px solid #FF5722',
-            borderRadius: '4px',
-            overflow: 'hidden'
-          }}
-        >
+        <div className="screen-capture-preview">
           <img
             src={capturedImage}
             alt="Captura"
-            style={{ width: '30px', height: '30px', display: 'block' }}
+            className="screen-capture-image"
           />
         </div>
       )}

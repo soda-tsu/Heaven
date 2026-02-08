@@ -93,7 +93,7 @@ function FindImageButton(): React.JSX.Element {
           minWidth: '150px'
         }}
       >
-        {isListening ? '...' : 'BUSCAR + SHIFT+9'}
+        {isListening ? '...' : 'Capturar'}
       </button>
 
       <span style={{ fontSize: '12px', color: '#888', height: '18px' }}>
