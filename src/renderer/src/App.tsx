@@ -3,9 +3,9 @@ import MousePositionButton from './components/MousePositionButton'
 import ScreenCaptureButton from './components/ScreenCaptureButton'
 import FindImageButton from './components/FindImageButton'
 import ceraImg from './assets/cera.png'
-import nuvemGorda from './assets/nuvenGorda.png'
+// import nuvemGorda from './assets/nuvenGorda.png'
 import nuvemEsticada from './assets/nuvenEsticada.png'
-import nuvemMiuda from './assets/nuvenMiuda.png'
+// import nuvemMiuda from './assets/nuvenMiuda.png'
 
 import './App.css'
 
@@ -21,9 +21,10 @@ function App(): React.JSX.Element {
       <section className="outlandSection">
         <h2 style={{textAlign: "center"}}>OUTLAND</h2>
         <MacroButton name="REVIVE" macroId="revive" />
+        <MacroButton name="COMBO" macroId="combo" />
         <FindImageButton />
         {/* <MacroButton name="BUFF" macroId="buff" /> */}
-        {/* <MousePositionButton /> */}
+        <MousePositionButton />
       </section>
       </div>
       <ScreenCaptureButton />

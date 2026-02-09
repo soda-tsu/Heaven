@@ -11,50 +11,122 @@ keyboard.config.autoDelayMs = 0
 // Armazena os dados da imagem capturada para busca
 let capturedImageData: { width: number; height: number; data: Buffer } | null = null
 
-// Função para buscar imagem na tela manualmente (comparação de pixels)
+// Verifica se um pixel da tela bate com o da needle dentro da tolerância
+function pixelMatches(
+  screenPixels: Buffer | Uint8Array,
+  needlePixels: Buffer,
+  screenIdx: number,
+  needleIdx: number,
+  tolerance: number
+): boolean {
+  const rDiff = Math.abs(screenPixels[screenIdx] - needlePixels[needleIdx])
+  if (rDiff > tolerance) return false
+  const gDiff = Math.abs(screenPixels[screenIdx + 1] - needlePixels[needleIdx + 1])
+  if (gDiff > tolerance) return false
+  const bDiff = Math.abs(screenPixels[screenIdx + 2] - needlePixels[needleIdx + 2])
+  return bDiff <= tolerance
+}
+
+// Região de busca limitada para otimização
+const SEARCH_REGION = { x: 254, y: 115, width: 1663 - 254, height: 850 - 115 }
+
+// Cache do screenshot para reusar entre buscas consecutivas
+let cachedScreenData: { width: number; height: number; data: Buffer | Uint8Array; timestamp: number } | null = null
+const SCREEN_CACHE_TTL = 50 // ms - tempo máximo para reusar screenshot
+
+// Função para buscar imagem na tela (otimizada com step scanning + amostragem)
 async function findImageOnScreen(
   needle: { width: number; height: number; data: Buffer },
   tolerance: number = 30
 ): Promise<{ x: number; y: number } | null> {
-  // Captura a tela inteira
-  const screenImage = await screen.grab()
-  const screenData = await screenImage.toRGB()
+  const now = Date.now()
 
-  const screenWidth = screenData.width
-  const screenHeight = screenData.height
-  const screenPixels = screenData.data
+  // Reutiliza screenshot se ainda é recente (evita captura redundante)
+  let screenWidth: number, screenHeight: number, screenPixels: Buffer | Uint8Array
+  if (cachedScreenData && (now - cachedScreenData.timestamp) < SCREEN_CACHE_TTL) {
+    screenWidth = cachedScreenData.width
+    screenHeight = cachedScreenData.height
+    screenPixels = cachedScreenData.data
+  } else {
+    const searchRegion = new Region(SEARCH_REGION.x, SEARCH_REGION.y, SEARCH_REGION.width, SEARCH_REGION.height)
+    const screenImage = await screen.grabRegion(searchRegion)
+    const screenData = await screenImage.toRGB()
+    screenWidth = screenData.width
+    screenHeight = screenData.height
+    screenPixels = screenData.data
+    cachedScreenData = { width: screenWidth, height: screenHeight, data: screenPixels, timestamp: now }
+  }
 
   const needleWidth = needle.width
   const needleHeight = needle.height
   const needlePixels = needle.data
 
-  // Percorre a tela procurando a imagem
-  for (let y = 0; y <= screenHeight - needleHeight; y += 2) {
-    for (let x = 0; x <= screenWidth - needleWidth; x += 2) {
-      let match = true
-      let checkedPixels = 0
-      let matchedPixels = 0
+  // Step=1 para needle pequena (10x10), step maior só para needles grandes (>20px)
+  const step = Math.min(needleWidth, needleHeight) > 20 ? Math.floor(Math.min(needleWidth, needleHeight) / 6) : 1
 
-      // Verifica alguns pixels da imagem (não todos para ser mais rápido)
-      for (let ny = 0; ny < needleHeight && match; ny += 3) {
-        for (let nx = 0; nx < needleWidth && match; nx += 3) {
-          const screenIdx = ((y + ny) * screenWidth + (x + nx)) * 4
-          const needleIdx = (ny * needleWidth + nx) * 4
+  // Pré-calcula pontos de amostragem distribuídos pela needle (máx 12 pontos)
+  const samplePoints: { nx: number; ny: number; needleIdx: number }[] = []
+  const sampleStepX = Math.max(1, Math.floor(needleWidth / 3))
+  const sampleStepY = Math.max(1, Math.floor(needleHeight / 3))
+  for (let sy = 0; sy < needleHeight; sy += sampleStepY) {
+    for (let sx = 0; sx < needleWidth; sx += sampleStepX) {
+      samplePoints.push({ nx: sx, ny: sy, needleIdx: (sy * needleWidth + sx) * 4 })
+    }
+  }
 
-          const rDiff = Math.abs(screenPixels[screenIdx] - needlePixels[needleIdx])
-          const gDiff = Math.abs(screenPixels[screenIdx + 1] - needlePixels[needleIdx + 1])
-          const bDiff = Math.abs(screenPixels[screenIdx + 2] - needlePixels[needleIdx + 2])
+  // Pré-calcula o pixel central da needle para filtro ultra-rápido
+  const centerNx = Math.floor(needleWidth / 2)
+  const centerNy = Math.floor(needleHeight / 2)
+  const centerNeedleIdx = (centerNy * needleWidth + centerNx) * 4
 
-          checkedPixels++
-          if (rDiff <= tolerance && gDiff <= tolerance && bDiff <= tolerance) {
-            matchedPixels++
-          }
-        }
+  const maxSampleMisses = Math.floor(samplePoints.length * 0.3)
+
+  for (let y = 0; y <= screenHeight - needleHeight; y += step) {
+    for (let x = 0; x <= screenWidth - needleWidth; x += step) {
+      // Filtro 1: checa pixel central
+      const centerScreenIdx = ((y + centerNy) * screenWidth + (x + centerNx)) * 4
+      if (!pixelMatches(screenPixels, needlePixels, centerScreenIdx, centerNeedleIdx, tolerance)) {
+        continue
       }
 
-      // Se mais de 80% dos pixels verificados correspondem, considera match
-      if (checkedPixels > 0 && matchedPixels / checkedPixels >= 0.8) {
-        return { x: x + Math.floor(needleWidth / 2), y: y + Math.floor(needleHeight / 2) }
+      // Filtro 2: checa pontos de amostragem distribuídos
+      let sampleMisses = 0
+      let passed = true
+      for (let i = 0; i < samplePoints.length; i++) {
+        const sp = samplePoints[i]
+        const screenIdx = ((y + sp.ny) * screenWidth + (x + sp.nx)) * 4
+        if (!pixelMatches(screenPixels, needlePixels, screenIdx, sp.needleIdx, tolerance)) {
+          sampleMisses++
+          if (sampleMisses > maxSampleMisses) { passed = false; break }
+        }
+      }
+      if (!passed) continue
+
+      // Filtro 3: verificação completa com early exit agressivo
+      let missedPixels = 0
+      const totalPixels = needleWidth * needleHeight
+      const maxMisses = Math.floor(totalPixels * 0.35)
+      let failed = false
+
+      for (let ny = 0; ny < needleHeight; ny++) {
+        const rowScreenBase = (y + ny) * screenWidth
+        const rowNeedleBase = ny * needleWidth
+        for (let nx = 0; nx < needleWidth; nx++) {
+          const screenIdx = (rowScreenBase + x + nx) * 4
+          const needleIdx = (rowNeedleBase + nx) * 4
+          if (!pixelMatches(screenPixels, needlePixels, screenIdx, needleIdx, tolerance)) {
+            missedPixels++
+            if (missedPixels > maxMisses) { failed = true; break }
+          }
+        }
+        if (failed) break
+      }
+
+      if (!failed) {
+        return {
+          x: SEARCH_REGION.x + x + Math.floor(needleWidth / 2),
+          y: SEARCH_REGION.y + y + Math.floor(needleHeight / 2)
+        }
       }
     }
   }
@@ -130,42 +202,67 @@ async function macroBuff(): Promise<void> {
 
 async function macroFindImageShift9(): Promise<void> {
   if (!capturedImageData) {
-    console.log('Nenhuma imagem capturada para buscar')
     return
   }
 
-  console.log('Iniciando busca de imagem em loop...')
-  console.log(`Imagem a buscar: ${capturedImageData.width}x${capturedImageData.height}`)
   let count = 0
 
   while (true) {
-    // Busca a imagem na tela usando busca manual
+    // Invalida cache para forçar screenshot fresco
+    cachedScreenData = null
     const found = await findImageOnScreen(capturedImageData)
 
-    if (found) {
-      count++
-      console.log(`[${count}] Imagem encontrada em: X=${found.x}, Y=${found.y}`)
-
-      // Move o mouse para o centro da imagem
-      await mouse.setPosition(new Point(found.x, found.y))
-
-      // Pressiona Shift + 9
-      await pressKey(Key.Num9, Key.LeftShift)
-
-      // Pequena pausa antes de procurar novamente
-      await new Promise((resolve) => setTimeout(resolve, 200))
-    } else {
-      // Imagem não encontrada, sai do loop
-      console.log(`Imagem não encontrada. Total de vezes: ${count}`)
+    if (!found) {
       break
     }
+
+    count++
+
+    // Segura Shift ANTES de mover o mouse (para que ao chegar já esteja pronto)
+    await keyboard.pressKey(Key.LeftShift)
+    // Move mouse + aperta 9 imediatamente
+    await mouse.setPosition(new Point(found.x, found.y))
+    await keyboard.pressKey(Key.Num9)
+    await keyboard.releaseKey(Key.Num9, Key.LeftShift)
+
+    // Delay para o jogo registrar a ação
+    await new Promise((resolve) => setTimeout(resolve, 50))
   }
+}
+
+// Mapa de teclas numéricas para o combo
+const numKeys: Key[] = [Key.Num0, Key.Num1, Key.Num2, Key.Num3, Key.Num4, Key.Num5, Key.Num6, Key.Num7, Key.Num8, Key.Num9]
+
+// Número de skills e tempo de espera por pokémon
+const NUMEROS_DE_SKILL_POR_POKEMON = 4 // TODO: ajuste conforme necessário
+const TEMPOS_POR_POKEMON = 2000 // TODO: ajuste em ms conforme necessário
+
+async function combo(numeroDeSkills: number): Promise<void> {
+  for (let n = 2; n <= numeroDeSkills; n++) {
+    await pressKey(numKeys[n])
+    await new Promise((resolve) => setTimeout(resolve, 600))
+  }
+}
+
+async function macroCombo(): Promise<void> {
+  console.log('Executando COMBO...')
+  // Alt + 1
+  await pressKey(Key.Num1, Key.LeftAlt)
+  await new Promise((resolve) => setTimeout(resolve, 100))
+  // Usar as skills
+  await combo(NUMEROS_DE_SKILL_POR_POKEMON)
+  // Tempo de espera de acordo com o pokémon
+  await new Promise((resolve) => setTimeout(resolve, TEMPOS_POR_POKEMON))
+  // Apertar F1
+  await pressKey(Key.F1)
+  await new Promise((resolve) => setTimeout(resolve, 100))
 }
 
 // Mapa de macros disponíveis
 const macros: Record<string, () => Promise<void>> = {
   revive: macroRevive,
   buff: macroBuff,
+  combo: macroCombo,
   findImageShift9: macroFindImageShift9
 }
 
@@ -306,7 +403,7 @@ app.whenReady().then(() => {
     return { success: true }
   })
 
-  // Registrar hotkey para captura de tela 50x50
+  // Registrar hotkey para captura de tela 15x15
   ipcMain.handle('screenCapture:register', async (_event, accelerator: string) => {
     try {
       // Remove hotkey anterior se existir
@@ -319,8 +416,8 @@ app.whenReady().then(() => {
         const position: Point = await mouse.getPosition()
         console.log(`Capturando tela em: X=${position.x}, Y=${position.y}`)
 
-        // Calcula a região 30x30 centralizada no mouse
-        const captureSize = 30
+        // Calcula a região 10x10 centralizada no mouse
+        const captureSize = 10
         const halfSize = Math.floor(captureSize / 2)
         const regionX = Math.max(0, position.x - halfSize)
         const regionY = Math.max(0, position.y - halfSize)
