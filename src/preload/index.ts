@@ -41,7 +41,13 @@ const api = {
   ): Promise<{ success: boolean; key?: string; error?: string }> =>
     ipcRenderer.invoke('findImage:register', accelerator),
   unregisterFindImageHotkey: (): Promise<{ success: boolean }> =>
-    ipcRenderer.invoke('findImage:unregister')
+    ipcRenderer.invoke('findImage:unregister'),
+  registerStopImageSearchHotkey: (
+    accelerator: string
+  ): Promise<{ success: boolean; key?: string; error?: string }> =>
+    ipcRenderer.invoke('stopImageSearch:register', accelerator),
+  unregisterStopImageSearchHotkey: (): Promise<{ success: boolean }> =>
+    ipcRenderer.invoke('stopImageSearch:unregister')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

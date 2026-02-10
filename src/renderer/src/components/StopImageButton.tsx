@@ -1,19 +1,16 @@
 import { useState, useEffect } from 'react'
-import './ScreenCaptureButton.css'
-import noimage from '../assets/noimage.jpg'
 
-function ScreenCaptureButton(): React.JSX.Element {
+function StopImageButton(): React.JSX.Element {
   const [hotkey, setHotkey] = useState<string>('')
   const [isListening, setIsListening] = useState(false)
   const [status, setStatus] = useState<string>('')
-  const [capturedImage, setCapturedImage] = useState<string | null>(null)
 
-  // Registra tecla padrão F8 ao montar o componente
+  // Registra tecla padrão F7 ao montar o componente
   useEffect(() => {
     const registerDefault = async (): Promise<void> => {
-      const result = await window.api.registerScreenCaptureHotkey('F8')
+      const result = await window.api.registerStopImageSearchHotkey('F7')
       if (result.success) {
-        setHotkey('F8')
+        setHotkey('F7')
       }
     }
     registerDefault()
@@ -60,7 +57,7 @@ function ScreenCaptureButton(): React.JSX.Element {
       setIsListening(false)
       setStatus('Registrando...')
 
-      const result = await window.api.registerScreenCaptureHotkey(accelerator)
+      const result = await window.api.registerStopImageSearchHotkey(accelerator)
 
       if (result.success) {
         setHotkey(accelerator)
@@ -75,34 +72,6 @@ function ScreenCaptureButton(): React.JSX.Element {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [isListening])
 
-  useEffect(() => {
-    window.api.onScreenCapture(
-      (imageData: { width: number; height: number; data: number[] }) => {
-        // Converte os dados RGB para uma imagem exibível usando canvas
-        const canvas = document.createElement('canvas')
-        canvas.width = imageData.width
-        canvas.height = imageData.height
-        const ctx = canvas.getContext('2d')
-
-        if (ctx) {
-          const imgData = ctx.createImageData(imageData.width, imageData.height)
-
-          // Os dados vêm em formato RGBA do nut-js
-          for (let i = 0; i < imageData.data.length; i++) {
-            imgData.data[i] = imageData.data[i]
-          }
-
-          ctx.putImageData(imgData, 0, 0)
-          setCapturedImage(canvas.toDataURL('image/png'))
-        }
-      }
-    )
-
-    return () => {
-      window.api.removeScreenCaptureListener()
-    }
-  }, [])
-
   const handleClick = (): void => {
     setIsListening(true)
     setStatus('...')
@@ -111,42 +80,29 @@ function ScreenCaptureButton(): React.JSX.Element {
   const handleRightClick = async (e: React.MouseEvent): Promise<void> => {
     e.preventDefault()
     if (hotkey) {
-      await window.api.unregisterScreenCaptureHotkey()
+      await window.api.unregisterStopImageSearchHotkey()
       setHotkey('')
       setStatus('')
-      setCapturedImage(null)
     }
   }
 
   return (
-    <section className="screen-capture-section">
-    <div className="screen-capture-container">
+    <div className="macro-button-container">
       <button
-        className="screen-capture-button"
+        className="macro-button"
         onClick={handleClick}
         onContextMenu={handleRightClick}
         disabled={isListening}
+        style={{ '--button-color': '#E07B7B' } as React.CSSProperties}
       >
-        {isListening ? 'SELECIONE UMA TECLA' : 'SELECIONAR CAPTURA'}
+        {isListening ? 'pressione a tecla' : 'Parar Busca'}
       </button>
 
       <div className="macro-button-status">
         {status || (hotkey ? hotkey : '-')}
       </div>
-
-    
-        
-      
     </div>
-    <div className="screen-capture-preview">
-          <img
-            src={capturedImage ? capturedImage : noimage}
-            alt="Captura"
-            className="screen-capture-image"
-          />
-        </div>
-    </section>
   )
 }
 
-export default ScreenCaptureButton
+export default StopImageButton

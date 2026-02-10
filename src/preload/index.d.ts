@@ -13,6 +13,8 @@ interface MacroAPI {
   removeScreenCaptureListener: () => void
   registerFindImageHotkey: (accelerator: string) => Promise<{ success: boolean; key?: string; error?: string }>
   unregisterFindImageHotkey: () => Promise<{ success: boolean }>
+  registerStopImageSearchHotkey: (accelerator: string) => Promise<{ success: boolean; key?: string; error?: string }>
+  unregisterStopImageSearchHotkey: () => Promise<{ success: boolean }>
 }
 
 declare global {

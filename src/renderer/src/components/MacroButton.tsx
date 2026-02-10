@@ -5,12 +5,25 @@ interface MacroButtonProps {
   name: string
   macroId: string
   color?: string
+  defaultKey?: string
 }
 
-function MacroButton({ name, macroId, color = '#D99197' }: MacroButtonProps): React.JSX.Element {
+function MacroButton({ name, macroId, color = '#D99197', defaultKey }: MacroButtonProps): React.JSX.Element {
   const [hotkey, setHotkey] = useState<string>('')
   const [isListening, setIsListening] = useState(false)
   const [status, setStatus] = useState<string>('')
+
+  // Registra tecla padrão ao montar o componente
+  useEffect(() => {
+    if (!defaultKey) return
+    const registerDefault = async (): Promise<void> => {
+      const result = await window.api.registerHotkey(macroId, defaultKey)
+      if (result.success) {
+        setHotkey(defaultKey)
+      }
+    }
+    registerDefault()
+  }, [])
 
   // Converte evento de teclado para formato do Electron (accelerator)
   const keyEventToAccelerator = (e: KeyboardEvent): string => {

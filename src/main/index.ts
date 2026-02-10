@@ -146,6 +146,12 @@ let screenCaptureHotkey: string | null = null
 // Armazena a hotkey para macro de busca de imagem
 let findImageHotkey: string | null = null
 
+// Flag para interromper a busca de imagem
+let stopImageSearch = false
+
+// Armazena a hotkey para parar busca de imagem
+let stopImageSearchHotkey: string | null = null
+
 // Função que aperta tecla e espera 0.1 segundos
 async function pressKey(key: Key, ...modifiers: Key[]): Promise<void> {
   if (modifiers.length > 0) {
@@ -207,7 +213,13 @@ async function macroFindImageShift9(): Promise<void> {
 
   let count = 0
 
+  stopImageSearch = false
+
   while (true) {
+    if (stopImageSearch) {
+      break
+    }
+
     // Invalida cache para forçar screenshot fresco
     cachedScreenData = null
     const found = await findImageOnScreen(capturedImageData)
@@ -220,10 +232,15 @@ async function macroFindImageShift9(): Promise<void> {
 
     // Segura Shift ANTES de mover o mouse (para que ao chegar já esteja pronto)
     await keyboard.pressKey(Key.LeftShift)
-    // Move mouse + aperta 9 imediatamente
+    await new Promise((resolve) => setTimeout(resolve, 30))
+    // Move mouse + aperta 9
     await mouse.setPosition(new Point(found.x, found.y))
     await keyboard.pressKey(Key.Num9)
-    await keyboard.releaseKey(Key.Num9, Key.LeftShift)
+    await new Promise((resolve) => setTimeout(resolve, 30))
+    // Solta 9 primeiro, depois Shift (garante que 9 nunca sai sem Shift)
+    await keyboard.releaseKey(Key.Num9)
+    await new Promise((resolve) => setTimeout(resolve, 30))
+    await keyboard.releaseKey(Key.LeftShift)
 
     // Delay para o jogo registrar a ação
     await new Promise((resolve) => setTimeout(resolve, 50))
@@ -234,8 +251,8 @@ async function macroFindImageShift9(): Promise<void> {
 const numKeys: Key[] = [Key.Num0, Key.Num1, Key.Num2, Key.Num3, Key.Num4, Key.Num5, Key.Num6, Key.Num7, Key.Num8, Key.Num9]
 
 // Número de skills e tempo de espera por pokémon
-const NUMEROS_DE_SKILL_POR_POKEMON = 4 // TODO: ajuste conforme necessário
-const TEMPOS_POR_POKEMON = 2000 // TODO: ajuste em ms conforme necessário
+const NUMEROS_DE_SKILL_POR_POKEMON = 5 // TODO: ajuste conforme necessário
+const TEMPOS_POR_POKEMON = 1800 // TODO: ajuste em ms conforme necessário
 
 async function combo(numeroDeSkills: number): Promise<void> {
   for (let n = 2; n <= numeroDeSkills; n++) {
@@ -245,7 +262,6 @@ async function combo(numeroDeSkills: number): Promise<void> {
 }
 
 async function macroCombo(): Promise<void> {
-  console.log('Executando COMBO...')
   // Alt + 1
   await pressKey(Key.Num1, Key.LeftAlt)
   await new Promise((resolve) => setTimeout(resolve, 100))
@@ -499,6 +515,40 @@ app.whenReady().then(() => {
     if (findImageHotkey) {
       globalShortcut.unregister(findImageHotkey)
       findImageHotkey = null
+    }
+    return { success: true }
+  })
+
+  // Registrar hotkey para parar busca de imagem
+  ipcMain.handle('stopImageSearch:register', async (_event, accelerator: string) => {
+    try {
+      if (stopImageSearchHotkey) {
+        globalShortcut.unregister(stopImageSearchHotkey)
+      }
+
+      const success = globalShortcut.register(accelerator, () => {
+        console.log(`Hotkey ${accelerator} -> stopImageSearch`)
+        stopImageSearch = true
+      })
+
+      if (success) {
+        stopImageSearchHotkey = accelerator
+        console.log(`Hotkey ${accelerator} registrada para parar busca de imagem`)
+        return { success: true, key: accelerator }
+      } else {
+        return { success: false, error: 'Tecla já em uso ou inválida' }
+      }
+    } catch (error) {
+      console.error('Erro ao registrar hotkey de parada:', error)
+      return { success: false, error: String(error) }
+    }
+  })
+
+  // Desregistrar hotkey de parada de busca de imagem
+  ipcMain.handle('stopImageSearch:unregister', async () => {
+    if (stopImageSearchHotkey) {
+      globalShortcut.unregister(stopImageSearchHotkey)
+      stopImageSearchHotkey = null
     }
     return { success: true }
   })

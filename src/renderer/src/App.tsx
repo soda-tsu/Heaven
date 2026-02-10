@@ -2,6 +2,7 @@ import MacroButton from './components/MacroButton'
 import MousePositionButton from './components/MousePositionButton'
 import ScreenCaptureButton from './components/ScreenCaptureButton'
 import FindImageButton from './components/FindImageButton'
+import StopImageButton from './components/StopImageButton'
 import ceraImg from './assets/cera.png'
 // import nuvemGorda from './assets/nuvenGorda.png'
 import nuvemEsticada from './assets/nuvenEsticada.png'
@@ -20,9 +21,10 @@ function App(): React.JSX.Element {
       <div className="tableSections">
       <section className="outlandSection">
         <h2 style={{textAlign: "center"}}>OUTLAND</h2>
-        <MacroButton name="REVIVE" macroId="revive" />
-        <MacroButton name="COMBO" macroId="combo" />
+        <MacroButton name="REVIVE" macroId="revive" defaultKey="F1" />
+        <MacroButton name="COMBO" macroId="combo" defaultKey="F2" />
         <FindImageButton />
+        <StopImageButton />
         {/* <MacroButton name="BUFF" macroId="buff" /> */}
         <MousePositionButton />
       </section>

@@ -5,6 +5,17 @@ function FindImageButton(): React.JSX.Element {
   const [isListening, setIsListening] = useState(false)
   const [status, setStatus] = useState<string>('')
 
+  // Registra tecla padrão F3 ao montar o componente
+  useEffect(() => {
+    const registerDefault = async (): Promise<void> => {
+      const result = await window.api.registerFindImageHotkey('F3')
+      if (result.success) {
+        setHotkey('F3')
+      }
+    }
+    registerDefault()
+  }, [])
+
   const keyEventToAccelerator = (e: KeyboardEvent): string => {
     const parts: string[] = []
 
