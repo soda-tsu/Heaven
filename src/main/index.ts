@@ -246,7 +246,10 @@ const numKeys: Key[] = [Key.Num0, Key.Num1, Key.Num2, Key.Num3, Key.Num4, Key.Nu
 
 // Número de skills e tempo de espera por pokémon
 const NUMEROS_DE_SKILL_POR_POKEMON = 5 // TODO: ajuste conforme necessário
-const TEMPOS_POR_POKEMON = 1400 // TODO: ajuste em ms conforme necessário
+const TEMPOS_POR_POKEMON = 1700 // TODO: ajuste em ms conforme necessário
+
+// loppuny 5 e 1400
+
 
 async function combo(numeroDeSkills: number): Promise<void> {
   for (let n = 2; n <= numeroDeSkills; n++) {
